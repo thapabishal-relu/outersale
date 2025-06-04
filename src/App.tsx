@@ -10,6 +10,8 @@ import OrganizationDetail from "./pages/OrganizationDetail";
 import PersonDetail from "./pages/PersonDetail";
 import NotFound from "./pages/NotFound";
 
+//  app.tsx file
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

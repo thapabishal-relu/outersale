@@ -1,10 +1,9 @@
-
-import { useState } from 'react';
-import { Search, Filter, Plus, Download, Settings } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import { useState } from "react";
+import { Search, Filter, Plus, Download, Settings } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface TopHeaderProps {
   title: string;
@@ -42,10 +41,12 @@ export const TopHeader = ({
 
         {/* Center section - Search */}
         <div className="flex-1 max-w-lg mx-8">
-          <div className={cn(
-            'relative transition-all duration-200',
-            searchFocused && 'transform scale-105'
-          )}>
+          <div
+            className={cn(
+              "relative transition-all duration-200",
+              searchFocused && "transform scale-105"
+            )}
+          >
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input
               placeholder="Search across all fields..."
@@ -65,16 +66,14 @@ export const TopHeader = ({
             size="sm"
             onClick={onFilterToggle}
             className={cn(
-              'relative',
-              isFilterVisible && 'bg-blue-50 border-blue-200 text-blue-700'
+              "relative",
+              isFilterVisible && "bg-blue-50 border-blue-200 text-blue-700"
             )}
           >
             <Filter className="h-4 w-4 mr-2" />
             Filters
             {activeFiltersCount > 0 && (
-              <Badge 
-                className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center bg-blue-600 text-white text-xs"
-              >
+              <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center bg-blue-600 text-white text-xs">
                 {activeFiltersCount}
               </Badge>
             )}
@@ -85,7 +84,10 @@ export const TopHeader = ({
             Export
           </Button>
 
-          <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+          <Button
+            size="sm"
+            className="flex-1  text-slate-900 bg-blue-200 hover:bg-blue-300 border-2 border-blue-100"
+          >
             <Plus className="h-4 w-4 mr-2" />
             Add New
           </Button>

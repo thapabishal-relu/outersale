@@ -1,15 +1,28 @@
-
-import { useState } from 'react';
-import { X, Filter } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import { FilterState } from '@/types';
+import { useState } from "react";
+import { X, Filter } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import { FilterState } from "@/types";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 
 interface FilterPanelProps {
   isVisible: boolean;
@@ -17,16 +30,16 @@ interface FilterPanelProps {
   filters: FilterState;
   onFiltersChange: (filters: Partial<FilterState>) => void;
   onReset: () => void;
-  entityType: 'organizations' | 'people' | 'task-mappings' | 'task-results';
+  entityType: "organizations" | "people" | "task-mappings" | "task-results";
 }
 
-export const FilterPanel = ({ 
-  isVisible, 
-  onToggle, 
-  filters, 
-  onFiltersChange, 
+export const FilterPanel = ({
+  isVisible,
+  onToggle,
+  filters,
+  onFiltersChange,
   onReset,
-  entityType 
+  entityType,
 }: FilterPanelProps) => {
   const [tempFilters, setTempFilters] = useState(filters);
 
@@ -35,7 +48,7 @@ export const FilterPanel = ({
   };
 
   const handleResetFilters = () => {
-    setTempFilters({ search: '' });
+    setTempFilters({ search: "" });
     onReset();
   };
 
@@ -53,10 +66,13 @@ export const FilterPanel = ({
     <>
       <div className="space-y-2">
         <Label htmlFor="industry">Industry</Label>
-        <Select 
-          value={tempFilters.industry?.[0] || ''} 
-          onValueChange={(value) => 
-            setTempFilters(prev => ({ ...prev, industry: value ? [value] : [] }))
+        <Select
+          value={tempFilters.industry?.[0] || ""}
+          onValueChange={(value) =>
+            setTempFilters((prev) => ({
+              ...prev,
+              industry: value ? [value] : [],
+            }))
           }
         >
           <SelectTrigger>
@@ -74,10 +90,10 @@ export const FilterPanel = ({
 
       <div className="space-y-2">
         <Label htmlFor="employees">Employee Range</Label>
-        <Select 
-          value={tempFilters.employeeRange || ''} 
-          onValueChange={(value) => 
-            setTempFilters(prev => ({ ...prev, employeeRange: value }))
+        <Select
+          value={tempFilters.employeeRange || ""}
+          onValueChange={(value) =>
+            setTempFilters((prev) => ({ ...prev, employeeRange: value }))
           }
         >
           <SelectTrigger>
@@ -102,19 +118,17 @@ export const FilterPanel = ({
         <Input
           id="title"
           placeholder="e.g. Manager, Engineer"
-          value={tempFilters.search || ''}
-          onChange={(e) => setTempFilters(prev => ({ ...prev, search: e.target.value }))}
+          value={tempFilters.search || ""}
+          onChange={(e) =>
+            setTempFilters((prev) => ({ ...prev, search: e.target.value }))
+          }
           className="bg-white"
         />
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="company">Company</Label>
-        <Input
-          id="company"
-          placeholder="Company name"
-          className="bg-white"
-        />
+        <Input id="company" placeholder="Company name" className="bg-white" />
       </div>
     </>
   );
@@ -123,10 +137,10 @@ export const FilterPanel = ({
     <>
       <div className="space-y-2">
         <Label htmlFor="status">Status</Label>
-        <Select 
-          value={tempFilters.status || ''} 
-          onValueChange={(value) => 
-            setTempFilters(prev => ({ ...prev, status: value }))
+        <Select
+          value={tempFilters.status || ""}
+          onValueChange={(value) =>
+            setTempFilters((prev) => ({ ...prev, status: value }))
           }
         >
           <SelectTrigger>
@@ -141,44 +155,84 @@ export const FilterPanel = ({
         </Select>
       </div>
 
+      {/* Date From */}
       <div className="space-y-2">
         <Label htmlFor="date-from">Date From</Label>
-        <Input
-          id="date-from"
-          type="date"
-          value={tempFilters.dateRange?.start || ''}
-          onChange={(e) => 
-            setTempFilters(prev => ({ 
-              ...prev, 
-              dateRange: { 
-                ...prev.dateRange, 
-                start: e.target.value,
-                end: prev.dateRange?.end || ''
-              } 
-            }))
-          }
-          className="bg-white"
-        />
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant={"outline"}
+              className={`w-full justify-start text-left font-normal ${
+                !tempFilters.dateRange?.start && "text-muted-foreground"
+              }`}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {tempFilters.dateRange?.start
+                ? format(new Date(tempFilters.dateRange.start), "PPP")
+                : "Pick a date"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0">
+            <Calendar
+              mode="single"
+              selected={
+                tempFilters.dateRange?.start
+                  ? new Date(tempFilters.dateRange.start)
+                  : undefined
+              }
+              onSelect={(date) =>
+                setTempFilters((prev) => ({
+                  ...prev,
+                  dateRange: {
+                    ...prev.dateRange,
+                    start: date ? date.toISOString() : "",
+                  },
+                }))
+              }
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
       </div>
 
+      {/* Date To */}
       <div className="space-y-2">
         <Label htmlFor="date-to">Date To</Label>
-        <Input
-          id="date-to"
-          type="date"
-          value={tempFilters.dateRange?.end || ''}
-          onChange={(e) => 
-            setTempFilters(prev => ({ 
-              ...prev, 
-              dateRange: { 
-                ...prev.dateRange, 
-                start: prev.dateRange?.start || '',
-                end: e.target.value
-              } 
-            }))
-          }
-          className="bg-white"
-        />
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant={"outline"}
+              className={`w-full justify-start text-left font-normal ${
+                !tempFilters.dateRange?.end && "text-muted-foreground"
+              }`}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {tempFilters.dateRange?.end
+                ? format(new Date(tempFilters.dateRange.end), "PPP")
+                : "Pick a date"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0">
+            <Calendar
+              mode="single"
+              selected={
+                tempFilters.dateRange?.end
+                  ? new Date(tempFilters.dateRange.end)
+                  : undefined
+              }
+              onSelect={(date) =>
+                setTempFilters((prev) => ({
+                  ...prev,
+                  dateRange: {
+                    ...prev.dateRange,
+                    end: date ? date.toISOString() : "",
+                  },
+                }))
+              }
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
       </div>
     </>
   );
@@ -194,7 +248,10 @@ export const FilterPanel = ({
               <Filter className="h-5 w-5 text-slate-600" />
               <CardTitle className="text-lg">Filters</CardTitle>
               {getActiveFilterCount() > 0 && (
-                <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                <Badge
+                  variant="secondary"
+                  className="bg-blue-100 text-blue-700"
+                >
                   {getActiveFilterCount()}
                 </Badge>
               )}
@@ -216,29 +273,32 @@ export const FilterPanel = ({
             <Input
               id="search"
               placeholder="Search..."
-              value={tempFilters.search || ''}
-              onChange={(e) => setTempFilters(prev => ({ ...prev, search: e.target.value }))}
+              value={tempFilters.search || ""}
+              onChange={(e) =>
+                setTempFilters((prev) => ({ ...prev, search: e.target.value }))
+              }
               className="bg-white"
             />
           </div>
 
           <Separator />
 
-          {entityType === 'organizations' && renderOrganizationFilters()}
-          {entityType === 'people' && renderPeopleFilters()}
-          {(entityType === 'task-mappings' || entityType === 'task-results') && renderTaskFilters()}
+          {entityType === "organizations" && renderOrganizationFilters()}
+          {entityType === "people" && renderPeopleFilters()}
+          {(entityType === "task-mappings" || entityType === "task-results") &&
+            renderTaskFilters()}
 
           <Separator />
 
           <div className="flex space-x-2">
-            <Button 
+            <Button
               onClick={handleApplyFilters}
-              className="flex-1 bg-blue-600 hover:bg-blue-700"
+              className="flex-1  text-slate-900 bg-blue-200 hover:bg-blue-300 border-2 border-blue-100"
             >
               Apply Filters
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={handleResetFilters}
               className="flex-1"
             >

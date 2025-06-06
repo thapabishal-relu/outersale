@@ -11,13 +11,13 @@ import {
 } from "@/types";
 import { debounce } from "lodash"; // Ensure lodash is installed
 
-export const useTaskMappings = (
+export const usePeople = (
   pagination: PaginationState,
   filters: FilterState
 ) => {
   return useQuery({
-    queryKey: ["taskMappings", pagination, filters],
-    queryFn: () => apiService.getTaskMappings(filters),
+    queryKey: ["people", pagination, filters],
+    queryFn: () => apiService.getPeople(filters, pagination), // Pass pagination
   });
 };
 
@@ -27,17 +27,17 @@ export const useOrganizations = (
 ) => {
   return useQuery({
     queryKey: ["organizations", pagination, filters],
-    queryFn: () => apiService.getOrganizations(filters),
+    queryFn: () => apiService.getOrganizations(filters, pagination), // Pass pagination
   });
 };
 
-export const usePeople = (
+export const useTaskMappings = (
   pagination: PaginationState,
   filters: FilterState
 ) => {
   return useQuery({
-    queryKey: ["people", pagination, filters],
-    queryFn: () => apiService.getPeople(filters),
+    queryKey: ["taskMappings", pagination, filters],
+    queryFn: () => apiService.getTaskMappings(filters, pagination), // Pass pagination
   });
 };
 
@@ -46,22 +46,6 @@ export const useOrganizationById = (id: string) => {
     queryKey: ["organization", id],
     queryFn: () => apiService.getOrganizationById(id),
     enabled: !!id,
-  });
-};
-
-export const usePersonById = (id: string) => {
-  return useQuery({
-    queryKey: ["person", id],
-    queryFn: () => apiService.getPersonById(id),
-    enabled: !!id,
-  });
-};
-
-export const usePeopleByOrganization = (organizationId: string) => {
-  return useQuery({
-    queryKey: ["people", "organization", organizationId],
-    queryFn: () => apiService.getPeopleByOrganization(organizationId),
-    enabled: !!organizationId,
   });
 };
 
@@ -119,4 +103,20 @@ export const useFilters = () => {
     updateFilters,
     resetFilters,
   };
+};
+
+export const usePersonById = (id: string) => {
+  return useQuery({
+    queryKey: ["person", id],
+    queryFn: () => apiService.getPersonById(id),
+    enabled: !!id,
+  });
+};
+
+export const usePeopleByOrganization = (organizationId: string) => {
+  return useQuery({
+    queryKey: ["people", "organization", organizationId],
+    queryFn: () => apiService.getPeopleByOrganization(organizationId),
+    enabled: !!organizationId,
+  });
 };

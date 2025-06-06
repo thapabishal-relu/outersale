@@ -20,8 +20,8 @@ const TaskMappings = () => {
     error,
   } = useTaskMappings(pagination, filters);
 
-  const taskMappings = taskMappingsData?.data ?? [];
-  const totalCount = taskMappingsData?.total ?? 0;
+  const taskMappings = taskMappingsData?.results ?? [];
+  const totalCount = taskMappingsData?.count ?? 0;
 
   React.useEffect(() => {
     if (totalCount !== pagination.total) {
@@ -53,14 +53,6 @@ const TaskMappings = () => {
       </Layout>
     );
   }
-
-  console.log("Task mappings data:", {
-    taskMappings,
-    totalCount,
-    isLoading,
-    error,
-    rawData: taskMappingsData,
-  });
 
   return (
     <Layout

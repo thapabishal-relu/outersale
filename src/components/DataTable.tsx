@@ -50,7 +50,8 @@ export const DataTable = ({
   const navigate = useNavigate();
 
   const handleRowClick = (row: TableData) => {
-    const id = row._id.$oid;
+    const id = row._id?.$oid || row._id || row.id;
+    if (!id) return;
     if (entityType === "organizations") {
       navigate(`/organizations/${id}`);
     } else if (entityType === "people") {
@@ -119,6 +120,8 @@ export const DataTable = ({
 
       case "website_url":
       case "linkedin_url":
+      case "twitter_url":
+      case "facebook_url":
         return value ? (
           <a
             href={value}
@@ -134,13 +137,13 @@ export const DataTable = ({
           "-"
         );
 
-      case "industry":
+      case "industries":
         return Array.isArray(value) ? value.join(", ") : value || "-";
 
       case "keywords":
         return Array.isArray(value) ? (
           <div className="flex flex-wrap gap-1">
-            {value.slice(0, 2).map((keyword, idx) => (
+            {value.slice(0, 2).map((keyword: string, idx: number) => (
               <Badge key={idx} variant="outline" className="text-xs">
                 {keyword}
               </Badge>
@@ -154,6 +157,9 @@ export const DataTable = ({
         ) : (
           value || "-"
         );
+
+      case "estimated_num_employees":
+        return value || "-";
 
       default:
         return value || "-";
@@ -191,7 +197,7 @@ export const DataTable = ({
               {columns.map((column) => (
                 <TableHead
                   key={column.key}
-                  className=" font-light uppercase text-slate-500 text-xs "
+                  className="font-light uppercase text-slate-500 text-xs"
                   style={{ width: column.width }}
                 >
                   {column.title}
@@ -202,7 +208,7 @@ export const DataTable = ({
           <TableBody>
             {data.map((row, index) => (
               <TableRow
-                key={row._id.$oid}
+                key={row._id?.$oid || row.id || index}
                 className={cn(
                   "cursor-pointer hover:bg-slate-50 transition-colors",
                   (entityType === "organizations" || entityType === "people") &&

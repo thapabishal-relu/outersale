@@ -6,14 +6,8 @@ import {
   Organization,
   Person,
   FilterState,
+  PaginationState,
 } from "@/types";
-import {
-  Outersale_OrganizationData,
-  Outersale_PeopleData,
-  outersale_task_mappingData,
-} from "@/lib/mockdata";
-
-const USE_MOCK_DATA = true;
 
 class ApiService {
   private api: AxiosInstance;
@@ -91,68 +85,27 @@ class ApiService {
       variant: "destructive",
     });
 
-    console.error("API Error:", error);
     return new Error(message);
   }
 
-  async getTaskMappings(
-    filters: FilterState
-  ): Promise<ApiResponse<TaskMapping>> {
-    if (USE_MOCK_DATA) {
-      let data = outersale_task_mappingData;
-      if (filters.search) {
-        const searchTerm = filters.search.toLowerCase();
-        data = outersale_task_mappingData.filter((task) =>
-          task.apollo_url?.toLowerCase().includes(searchTerm)
-        );
-      }
-      return {
-        data,
-        total: data.length,
-        page: 1,
-        limit: data.length,
-      };
-    }
-    const response = await this.api.get("chrome/data/", { params: filters });
-    return response.data;
-  }
-
   async getOrganizations(
-    filters: FilterState
+    filters: FilterState,
+    pagination?: PaginationState
   ): Promise<ApiResponse<Organization>> {
-    if (USE_MOCK_DATA) {
-      let data = Outersale_OrganizationData;
-      if (filters.search) {
-        const searchTerm = filters.search.toLowerCase();
-        data = Outersale_OrganizationData.filter(
-          (org) =>
-            org.name?.toLowerCase().includes(searchTerm) ||
-            org.industry?.some((ind) =>
-              ind.toLowerCase().includes(searchTerm)
-            ) ||
-            org.address?.toLowerCase().includes(searchTerm)
-        );
-      }
-      return {
-        data,
-        total: data.length,
-        page: 1,
-        limit: data.length,
-      };
-    }
-    const response = await this.api.get("organizations/", { params: filters });
+    const params = {
+      ...filters,
+      ...(pagination && {
+        page: pagination.page,
+        page_size: pagination.limit,
+      }),
+    };
+    const response = await this.api.get("organizations/", { params });
     return response.data;
   }
 
   async getOrganizationById(id: string): Promise<Organization | null> {
-    if (USE_MOCK_DATA) {
-      const org = Outersale_OrganizationData.find(
-        (org) => org._id.$oid === id || org.apollo_id === id
-      );
-      return org || null;
-    }
     try {
-      const response = await this.api.get(`organizations/${id}`);
+      const response = await this.api.get(`organizations/${id}/`);
       return response.data || null;
     } catch (error) {
       this.handleApiError(error);
@@ -160,100 +113,73 @@ class ApiService {
     }
   }
 
-  async getPeople(filters: FilterState): Promise<ApiResponse<Person>> {
-    if (USE_MOCK_DATA) {
-      let data = Outersale_PeopleData;
-      if (filters.search) {
-        const searchTerm = filters.search.toLowerCase();
-        data = Outersale_PeopleData.filter(
-          (person) =>
-            person.first_name?.toLowerCase().includes(searchTerm) ||
-            person.last_name?.toLowerCase().includes(searchTerm) ||
-            person.company?.toLowerCase().includes(searchTerm) ||
-            person.title?.toLowerCase().includes(searchTerm) ||
-            person.email?.toLowerCase().includes(searchTerm)
-        );
-      }
-      return {
-        data,
-        total: data.length,
-        page: 1,
-        limit: data.length,
-      };
-    }
-    const response = await this.api.get("people/", { params: filters });
-    return response.data;
-  }
-
-  async getPersonById(id: string): Promise<Person | null> {
-    if (USE_MOCK_DATA) {
-      const person = Outersale_PeopleData.find(
-        (person) => person._id.$oid === id || person.apollo_id === id
-      );
-      return person || null;
-    }
+  async searchOrganizations(query: string): Promise<Organization[]> {
     try {
-      const response = await this.api.get(`people/${id}`);
-      return response.data || null;
+      const response = await this.api.get("organizations/search/", {
+        params: { query },
+      });
+      return response.data || [];
     } catch (error) {
       this.handleApiError(error);
-      return null;
+      return [];
     }
   }
 
   async getOrganizationForPerson(
     organizationId: string
   ): Promise<Organization | null> {
-    if (USE_MOCK_DATA) {
-      const org = Outersale_OrganizationData.find(
-        (org) => org._id.$oid === organizationId
-      );
-      return org || null;
-    }
     return this.getOrganizationById(organizationId);
   }
 
+  async getPeople(
+    filters: FilterState,
+    pagination?: PaginationState
+  ): Promise<ApiResponse<Person>> {
+    const params = {
+      ...filters,
+      ...(pagination && {
+        page: pagination.page,
+        page_size: pagination.limit, // Django uses 'page_size', not 'limit'
+      }),
+    };
+    const response = await this.api.get("people/", { params });
+    return response.data;
+  }
+
+  async getPersonById(id: string): Promise<Person | null> {
+    try {
+      const response = await this.api.get(`people/${id}/`);
+      return response.data || null;
+    } catch (error) {
+      this.handleApiError(error);
+      return null;
+    }
+  }
+
   async getPeopleByOrganization(organizationId: string): Promise<Person[]> {
-    if (USE_MOCK_DATA) {
-      return Outersale_PeopleData.filter(
-        (person) => person.organization_id === organizationId
+    try {
+      const response = await this.api.get(
+        `people/by-organization/${organizationId}/`
       );
+      return response.data || [];
+    } catch (error) {
+      this.handleApiError(error);
+      return [];
     }
-    const response = await this.api.get(
-      `organizations/${organizationId}/people`
-    );
-    return response.data;
   }
 
-  async searchPeople(query: string): Promise<Person[]> {
-    if (USE_MOCK_DATA) {
-      const searchTerm = query.toLowerCase();
-      return Outersale_PeopleData.filter(
-        (person) =>
-          person.first_name?.toLowerCase().includes(searchTerm) ||
-          person.last_name?.toLowerCase().includes(searchTerm) ||
-          person.company?.toLowerCase().includes(searchTerm) ||
-          person.title?.toLowerCase().includes(searchTerm) ||
-          person.email?.toLowerCase().includes(searchTerm)
-      );
-    }
-    const response = await this.api.get("people/search", { params: { query } });
-    return response.data;
-  }
-
-  async searchOrganizations(query: string): Promise<Organization[]> {
-    if (USE_MOCK_DATA) {
-      const searchTerm = query.toLowerCase();
-      return Outersale_OrganizationData.filter(
-        (org) =>
-          org.name?.toLowerCase().includes(searchTerm) ||
-          org.industry?.some((ind) => ind.toLowerCase().includes(searchTerm)) ||
-          org.address?.toLowerCase().includes(searchTerm)
-      );
-    }
-    const response = await this.api.get("organizations/search", {
-      params: { query },
-    });
+  async getTaskMappings(
+    filters: FilterState,
+    pagination?: PaginationState
+  ): Promise<ApiResponse<TaskMapping>> {
+    const params = {
+      ...filters,
+      ...(pagination && {
+        page: pagination.page,
+        page_size: pagination.limit,
+      }),
+    };
+    const response = await this.api.get("chrome/data/", { params });
     return response.data;
   }
 }
